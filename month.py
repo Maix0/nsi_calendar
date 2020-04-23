@@ -5,19 +5,36 @@ from day import Day
 
 
 class Month:
+    """
+    Classe qui reprente un mois d'une année donné
+    """
+
     def __init__(self, number, year):
         self.number = number
         self.year = year
         self.days = [Day(num) for num in range(1, 32)]
 
+    """
+    Permet de changer la classe qui represente les jour
+    """
+
     def set_custom_day(self, day):
         self.days = [day(num) for num in range(1, 32)]
+
+    """
+    Retourne le nom du mois donnée en string
+    """
 
     @staticmethod
     def get_month(month):
         month_list = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre",
                       "Novembre", "Décembre"]
         return month_list[month - 1]
+
+    """
+        Retourne une image qui represente le mois.
+        Cette fonction peut etre reimplementer pour changer l'apparence des mois.
+    """
 
     def generate(self):
         im = Image.new("RGB", size=(DAY_SIZE * 7, DAY_SIZE * 5 + HEADER_SIZE), color="white")

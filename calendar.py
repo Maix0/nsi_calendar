@@ -7,12 +7,24 @@ from month import Month
 
 
 class Calendar:
+    """
+    Class qui reprensete le calendrier.
+    """
+
     def __init__(self, year):
         self.year = year
         self.months = [Month(x, year) for x in range(1, 13)]
 
+    """
+    Change la classe qui represente les jours
+    """
+
     def set_custom_day(self, day):
         map(lambda d: d.set_custom_days(day), self.months)
+
+    """
+    genere l'image du calendrier. cette fonction peut etre reimplementer pour changer l'apparence
+    """
 
     def generate(self):
         m_x, m_y = self.months[0].generate().size
