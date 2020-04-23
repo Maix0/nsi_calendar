@@ -37,7 +37,7 @@ class Month:
     """
 
     def generate(self):
-        im = Image.new("RGB", size=(DAY_SIZE * 7, DAY_SIZE * 5 + HEADER_SIZE), color="white")
+        im = Image.new("RGB", size=(DAY_SIZE * 7, DAY_SIZE * 6 + HEADER_SIZE), color=MONTH_BG_COLOR)
         draw = ImageDraw.Draw(im)
         y = HEADER_SIZE
         x = -1
@@ -53,5 +53,5 @@ class Month:
                 x = 0
                 y += DAY_SIZE
             im.paste(day.generate_image(self.number, self.year), (x, y))
-        draw.text((0, 0), self.get_month(self.number), fill="black", font=FONT)
+        draw.text((0, 0), self.get_month(self.number), fill=TEXT_COLOR, font=FONT)
         return im

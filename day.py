@@ -30,7 +30,7 @@ class Day:
         if month == 2:
             if (year // 4 and not year // 100) or year // 400:
                 return num <= 29
-        return num <= Day.MAX_DAY[month - 1]
+        return num <= MAX_DAY[month - 1]
 
     """
     Retourne le jour de la semaine correspondant au arguments donnés
@@ -63,11 +63,10 @@ class Day:
     def generate_image(self, month, year):
         pts = [(DAY_SIZE * BORDER_TOP_LEFT, DAY_SIZE * BORDER_TOP_LEFT),
                (DAY_SIZE * BORDER_BOTTOM_LEFT, DAY_SIZE * BORDER_BOTTOM_LEFT)]
-        img = Image.new("RGB", size=(DAY_SIZE, DAY_SIZE), color="white")
+        img = Image.new("RGB", size=(DAY_SIZE, DAY_SIZE), color=DAY_BG_COLOR)
         draw = ImageDraw.Draw(img)
-        # fill = ["yellow", "blue", "cyan", "orange", "purple", "green", "grey"][self.get_own_day(month, year)[0]]
-        fill = "white"
-        draw.rectangle(pts, outline="black", fill=fill, width=LINE_SIZE)
+        fill = DAY_INNER_BG_BY_DAY[self.get_own_day(month, year)[0]]
+        draw.rectangle(pts, outline=LINE_COLOR, fill=fill, width=LINE_SIZE)
         draw.text((DAY_SIZE * (BORDER_TOP_LEFT + TEXT_OFFSET), DAY_SIZE * (BORDER_TOP_LEFT + TEXT_OFFSET)),
-                  str(self.num), fill="red", font=FONT)
+                  str(self.num), fill=DAY_NUM_COLOR, font=FONT)
         return img

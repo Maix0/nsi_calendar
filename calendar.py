@@ -1,6 +1,6 @@
 from math import ceil
 
-from PIL import Image
+from PIL import Image, ImageDraw
 
 from constants import *
 from month import Month
@@ -28,7 +28,8 @@ class Calendar:
 
     def generate(self):
         m_x, m_y = self.months[0].generate().size
-        im = Image.new("RGB", size=(m_x * MONTH_PER_LINE, m_y * ceil(12 / MONTH_PER_LINE) + HEADER_SIZE), color="white")
+        im = Image.new("RGB", size=(m_x * MONTH_PER_LINE, m_y * ceil(12 / MONTH_PER_LINE) + HEADER_SIZE),
+                       color=CALENDAR_BG_COLOR)
         x, y = -1, HEADER_SIZE
         for month in self.months:
             if x == -1:
@@ -40,5 +41,6 @@ class Calendar:
                 y += m_y
             m_img = month.generate()
             im.paste(m_img, (x, y))
-
+        draw = ImageDraw.Draw(im)
+        draw.text((0, 0), str(self.year), fill=TEXT_COLOR, font=FONT)
         return im
