@@ -27,10 +27,17 @@ class Day:
 
     @staticmethod
     def is_valid(num, month, year):
-        if month == 2:
-            if (year // 4 and not year // 100) or year // 400:
-                return num <= 29
-        return num <= MAX_DAY[month - 1]
+        correct_date = None
+        try:
+            datetime.datetime(year, month, num)
+            correct_date = True
+        except ValueError:
+            correct_date = False
+        return correct_date
+        # if month == 2:
+        #    if isleap(year):
+        #        return num <= 29
+        # return num <= MAX_DAY[month - 1]
 
     """
     Retourne le jour de la semaine correspondant au arguments donnés
@@ -70,3 +77,29 @@ class Day:
         draw.text((DAY_SIZE * (BORDER_TOP_LEFT + TEXT_OFFSET), DAY_SIZE * (BORDER_TOP_LEFT + TEXT_OFFSET)),
                   str(self.num), fill=DAY_NUM_COLOR, font=FONT)
         return img
+
+
+class PatchouliDay(Day):
+    """
+    Une class pour montrer comment changer la logic de l'affichage
+    """
+
+
+patchouli = Image.open("patchouli.png")
+
+
+def generate_image(self, month, year):
+    PatchouliDay.patchouli.resize((DAY_SIZE, DAY_SIZE))
+    pts = [(DAY_SIZE * BORDER_TOP_LEFT, DAY_SIZE * BORDER_TOP_LEFT),
+           (DAY_SIZE * BORDER_BOTTOM_LEFT, DAY_SIZE * BORDER_BOTTOM_LEFT)]
+    img = Image.new("RGBA", size=(DAY_SIZE, DAY_SIZE), color="white")
+    color_img = Image.new("RGBA", size=(DAY_SIZE, DAY_SIZE),
+                          color=DAY_INNER_BG_BY_DAY[self.get_own_day(month, year)[0]])
+    color_img.putalpha(150)
+    img.paste(PatchouliDay.patchouli, (0, 0))
+    draw = ImageDraw.Draw(img)
+    draw.rectangle(pts, outline=LINE_COLOR, width=LINE_SIZE)
+    img.alpha_composite(color_img)
+    draw.text((DAY_SIZE * (BORDER_TOP_LEFT + TEXT_OFFSET), DAY_SIZE * (BORDER_TOP_LEFT + TEXT_OFFSET)),
+              str(self.num), fill=DAY_NUM_COLOR, font=FONT)
+    return img

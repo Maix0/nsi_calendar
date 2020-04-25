@@ -18,8 +18,9 @@ class Month:
     Permet de changer la classe qui represente les jour
     """
 
-    def set_custom_day(self, day):
-        self.days = [day(num) for num in range(1, 32)]
+    def set_custom_day(self, custom_day):
+        self.days = [custom_day(num) for num in range(1, 32)]
+        return self
 
     """
     Retourne le nom du mois donnée en string
@@ -27,8 +28,7 @@ class Month:
 
     @staticmethod
     def get_month(month):
-        month_list = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre",
-                      "Novembre", "Décembre"]
+        month_list = MONTH_NAME[LANG]
         return month_list[month - 1]
 
     """

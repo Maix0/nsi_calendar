@@ -19,8 +19,10 @@ class Calendar:
     Change la classe qui represente les jours
     """
 
-    def set_custom_day(self, day):
-        map(lambda d: d.set_custom_days(day), self.months)
+    def set_custom_day(self, custom_day):
+        print(custom_day)
+        self.months = list(map(lambda m: m.set_custom_day(custom_day), self.months))
+        print(self.months)
 
     """
     genere l'image du calendrier. cette fonction peut etre reimplementer pour changer l'apparence
