@@ -1,11 +1,16 @@
-import colors
 from calendar import Calendar
+from day import PatchouliDay
+from month import ColorMonth
 
-print("Please enter a number between {0}1{1} and {0}9999{1}".format(colors.GREEN, colors.RESET))
-print("Any other number will terminate the program")
-while True:
-    year = int(input("What year > "))
-    if year < 1 or year > 9999:
-        break
-    c = Calendar(year)
-    c.generate().show()
+if __name__ == "__main__":  # ceci permet d'executer ce code seulement si invoquer directement avec `python main.py`
+    print("Please enter a number between 1 and 9999")
+    print("Any other number will terminate the program")
+    while True:
+        year = int(input("What year > "))
+        if year < 1 or year > 9999:
+            break
+        c = Calendar(year)
+        c.set_custom_day(PatchouliDay)
+        c.set_custom_month(ColorMonth)
+        c.generate().show()
+        # c.generate().save("calendar.png")

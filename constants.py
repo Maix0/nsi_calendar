@@ -24,13 +24,6 @@ MONTH_NAME = {"fr": ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Jui
 
 FONT = ImageFont.truetype("Consolas.ttf", size=FONT_SIZE)
 
-
-def change_lang(new_lang):
-    global LANG
-    LANG = new_lang
-
-
 __all__ = ["DAY_SIZE", "MAX_DAY", "HEADER_SIZE", "BORDER_TOP_LEFT", "BORDER_BOTTOM_LEFT", "TEXT_OFFSET",
            "MONTH_PER_LINE", "LINE_SIZE", "FONT_SIZE", "FONT", "LINE_COLOR", "DAY_NUM_COLOR", "DAY_BG_COLOR",
-           "TEXT_COLOR", "MONTH_BG_COLOR", "DAY_INNER_BG_BY_DAY", "CALENDAR_BG_COLOR", "LANG", "MONTH_NAME",
-           "change_lang"]
+           "TEXT_COLOR", "MONTH_BG_COLOR", "DAY_INNER_BG_BY_DAY", "CALENDAR_BG_COLOR", "LANG", "MONTH_NAME"]
