@@ -22,8 +22,12 @@ MONTH_NAME = {"fr": ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Jui
               "en": ["January", "February", "March", "April", "May", "Jun", "July", "August", "September", "October",
                      "November", "December"]}
 
-FONT = ImageFont.truetype("Consolas.ttf", size=FONT_SIZE)
-
+try:
+    FONT = ImageFont.truetype("Consolas.ttf", size=FONT_SIZE)
+except IOError:
+    print(
+        "You need to find the 'Consolas' font and put it in the directory with all the code (filename='Consolas.ttf')")
+    exit()
 __all__ = ["DAY_SIZE", "MAX_DAY", "HEADER_SIZE", "BORDER_TOP_LEFT", "BORDER_BOTTOM_LEFT", "TEXT_OFFSET",
            "MONTH_PER_LINE", "LINE_SIZE", "FONT_SIZE", "FONT", "LINE_COLOR", "DAY_NUM_COLOR", "DAY_BG_COLOR",
            "TEXT_COLOR", "MONTH_BG_COLOR", "DAY_INNER_BG_BY_DAY", "CALENDAR_BG_COLOR", "LANG", "MONTH_NAME"]

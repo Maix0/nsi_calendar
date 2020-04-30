@@ -1,6 +1,5 @@
 from calendar import Calendar
-from day import PatchouliDay
-from month import ColorMonth
+from day import FoxDay
 
 if __name__ == "__main__":  # ceci permet d'executer ce code seulement si invoquer directement avec `python main.py`
     print("Please enter a number between 1 and 9999")
@@ -10,7 +9,6 @@ if __name__ == "__main__":  # ceci permet d'executer ce code seulement si invoqu
         if year < 1 or year > 9999:
             break
         c = Calendar(year)
-        c.set_custom_day(PatchouliDay)
-        c.set_custom_month(ColorMonth)
-        c.generate().show()
+        c.set_custom_day(FoxDay)
+        c.months[0].generate().save("tmp.png")
         # c.generate().save("calendar.png")

@@ -85,7 +85,7 @@ class PatchouliDay(Day):
     """
         Une class example pour montrer comment changer la logic de l'affichage
     """
-    patchouli = Image.open("./patchouli.png")
+    patchouli = Image.open("./static/patchouli.png")
 
     def generate_image(self, month, year):
         PatchouliDay.patchouli.resize((DAY_SIZE, DAY_SIZE))
@@ -101,4 +101,28 @@ class PatchouliDay(Day):
         img.alpha_composite(color_img)
         draw.text((DAY_SIZE * (BORDER_TOP_LEFT + TEXT_OFFSET), DAY_SIZE * (BORDER_TOP_LEFT + TEXT_OFFSET)),
                   str(self.num), fill=DAY_NUM_COLOR, font=FONT)
+        return img
+
+
+class FoxDay(Day):
+    bgs = [Image.open(path) for path in ["./static/fox{}.png".format(i) for i in range(1, 8)]]
+    resized = [False] * 7
+
+    def generate_image(self, month, year):
+        pts = [[DAY_SIZE * BORDER_TOP_LEFT, DAY_SIZE * BORDER_TOP_LEFT],
+               [DAY_SIZE * BORDER_BOTTOM_LEFT, DAY_SIZE * BORDER_BOTTOM_LEFT]]
+        for i, r in enumerate(FoxDay.resized):
+            if not r:
+                FoxDay.bgs[i] = FoxDay.bgs[i].resize((int(pts[1][0] - pts[0][0]), int(pts[1][1] - pts[0][1])))
+                FoxDay.resized[i] = True
+        img = Image.new("RGBA", size=(DAY_SIZE, DAY_SIZE), color=MONTH_BG_COLOR)
+        img.paste(FoxDay.bgs[self.get_own_day(month, year)[0]], (int(pts[0][0]), int(pts[0][1])))
+        draw = ImageDraw.Draw(img)
+        draw.rectangle(list(map(tuple, pts)), outline=LINE_COLOR, width=LINE_SIZE)
+        pts[0] = [DAY_SIZE * (BORDER_TOP_LEFT + TEXT_OFFSET), DAY_SIZE * (BORDER_TOP_LEFT + TEXT_OFFSET)]
+        pts[1][0] = pts[0][0] + FONT.getsize(str(self.num))[0] * 1.05
+        pts[1][1] = pts[0][1] + FONT.getsize(str(self.num))[1] * 1.05
+        draw.rectangle(list(map(tuple, pts)), fill=MONTH_BG_COLOR, outline=None)
+        draw.text((DAY_SIZE * (BORDER_TOP_LEFT + TEXT_OFFSET), DAY_SIZE * (BORDER_TOP_LEFT + TEXT_OFFSET)),
+                  str(self.num), fill="white", font=FONT)
         return img
