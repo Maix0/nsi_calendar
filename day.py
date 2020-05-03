@@ -86,18 +86,25 @@ class PatchouliDay(Day):
         Une class example pour montrer comment changer la logic de l'affichage
     """
     patchouli = Image.open("./static/patchouli.png")
+    resized = False
 
     def generate_image(self, month, year):
-        PatchouliDay.patchouli.resize((DAY_SIZE, DAY_SIZE))
-        pts = [(DAY_SIZE * BORDER_TOP_LEFT, DAY_SIZE * BORDER_TOP_LEFT),
-               (DAY_SIZE * BORDER_BOTTOM_LEFT, DAY_SIZE * BORDER_BOTTOM_LEFT)]
-        img = Image.new("RGBA", size=(DAY_SIZE, DAY_SIZE), color="white")
-        color_img = Image.new("RGBA", size=(DAY_SIZE, DAY_SIZE),
-                              color=DAY_INNER_BG_BY_DAY[self.get_own_day(month, year)[0]])
-        color_img.putalpha(150)
-        img.paste(PatchouliDay.patchouli, (0, 0))
+        pts = [(int(DAY_SIZE * BORDER_TOP_LEFT), int(DAY_SIZE * BORDER_TOP_LEFT)),
+               (int(DAY_SIZE * BORDER_BOTTOM_LEFT), int(DAY_SIZE * BORDER_BOTTOM_LEFT))]
+        if not self.resized:
+            self.patchouli = self.patchouli.resize((int(pts[1][0] - pts[0][0]), int(pts[1][1] - pts[0][1])))
+            self.resized = True
+        img = Image.new("RGBA", size=(DAY_SIZE, DAY_SIZE), color=MONTH_BG_COLOR)
+        color_img = Image.new("RGBA", size=(DAY_SIZE, DAY_SIZE), color=MONTH_BG_COLOR)
+        img.paste(self.patchouli, pts[0])
+
+        col_img_draw = ImageDraw.Draw(color_img)
+        col_img_draw.rectangle(pts, outline=LINE_COLOR, fill=DAY_INNER_BG_BY_DAY[self.get_own_day(month, year)[0]],
+                               width=LINE_SIZE)
+
         draw = ImageDraw.Draw(img)
         draw.rectangle(pts, outline=LINE_COLOR, width=LINE_SIZE)
+        color_img.putalpha(128)
         img.alpha_composite(color_img)
         draw.text((DAY_SIZE * (BORDER_TOP_LEFT + TEXT_OFFSET), DAY_SIZE * (BORDER_TOP_LEFT + TEXT_OFFSET)),
                   str(self.num), fill=DAY_NUM_COLOR, font=FONT)

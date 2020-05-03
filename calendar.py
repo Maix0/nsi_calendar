@@ -7,7 +7,6 @@ from month import Month
 
 
 class Calendar:
-
     def __init__(self, year):
         """
             Une representation d'un calendrier

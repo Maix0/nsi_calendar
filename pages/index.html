@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Maix's Calendar</title>
+    <link href="./assets/main.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+</head>
+
+<body>
+<script defer src="./assets/main.js"></script>
+<div class="viewer_container">
+    <button class="button back">
+            <span class="material-icons">
+                arrow_back_ios
+            </span>
+    </button>
+    <img class="viewer hidden">
+    <div class="year_chooser">
+        <input , class="year_picker" placeholder="Choose a year" type="number"></input>
+        <button class="year_btn" onclick="load_year()">Choose</button>
+
+    </div>
+    <button class="button next">
+
+            <span class="material-icons">
+                arrow_forward_ios
+            </span>
+    </button>
+</div>
+<div class="settings_container">
+    <div class="cm-custom premade">
+        <div class="cm-header">Premade Themes</div>
+    </div>
+    <div class="cm-custom month">
+        <div class="cm-header">Month's Themes</div>
+    </div>
+    <div class="cm-custom day">
+        <div class="cm-header">Day's Themes</div>
+    </div>
+</div>
+</body>
+
+</html>

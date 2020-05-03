@@ -1,0 +1,151 @@
+html,
+body {
+  width: 100vw;
+  height: 100vh;
+  padding: 0;
+  margin: 0;
+  background-color: #1E1E1E;
+}
+
+.viewer_container {
+  position: absolute;
+  width: 65.625%;
+  height: 94.44444%;
+  left: 1.5625%;
+  top: 2.77778%;
+  background: rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: space-around;
+}
+
+.viewer {
+  height: 100%;
+  width: auto;
+}
+
+.button {
+  padding: 0;
+  margin: 0;
+  width: 100%;
+  background-color: #0E0E0E;
+  border: none;
+  color: white
+}
+
+.button.disabled {
+  padding: 0;
+  margin: 0;
+  width: 100%;
+  background-color: #0E0E0E;
+  border: none;
+  color: grey;
+  cursor: not-allowed
+}
+
+.hidden {
+  display: none;
+}
+
+
+
+.cm-custom {
+  background-color: #1e1e1e;
+  border: 1px solid #cccccc;
+  box-shadow: 1px 1px 10px rgba(0, 0, 0, 0.1);
+  padding: 10px 0;
+  position: absolute;
+  width: 200px;
+  color: #ffffff
+}
+
+.cm-element::selection:hover {
+  background-color: #1e1e1e;
+  border: 1px solid #cccccc;
+  ;
+  box-shadow: 1px 1px 10px rgba(0, 0, 0, 0.1);
+  padding: 10px 0;
+  position: absolute;
+  width: 200px;
+  color: #ffffff
+}
+
+.cm-element::selection {
+  background-color: #1e1e1e;
+  ;
+  border: 1px solid #cccccc;
+  ;
+  box-shadow: 1px 1px 10px rgba(0, 0, 0, 0.1);
+  padding: 10px 0;
+  position: absolute;
+  width: 200px;
+  color: #ffffff;
+}
+
+.cm-element {
+  cursor: pointer;
+  padding: 8px 15px
+}
+
+.cm-element:hover {
+  background-color: #575757;
+}
+
+.cm-element.selected {
+  background-color: #575757;
+}
+
+.cm-header {
+  background-color: #222222;
+  border: 1px solid #cccccc;
+  box-shadow: 1px 1px 10px rgba(0, 0, 0, 0.1);
+  margin: 0;
+  padding: 10px 0;
+  color: #ffffff;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+
+
+.settings_container {
+  position: absolute;
+  width: 29.6875%;
+  height: 94.44444%;
+  left: 68.75%;
+  top: 2.77778%;
+  background: #00A3FF;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 1px 1px;
+  grid-template-areas: "premade premade""month day";
+}
+
+.premade {
+  grid-area: premade;
+}
+
+.month {
+  grid-area: month;
+}
+
+.day {
+  grid-area: day;
+}
+
+.premade,
+.month,
+.day {
+  width: 100%;
+  height: 100%;
+  overflow: scroll;
+}
+
+body {
+
+  font-family: "BlinkMacSystemFont", "Segoe UI", "Roboto", "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+}
+
+.year_chooser {
+  width: 500%;
+}

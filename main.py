@@ -1,14 +1,6 @@
-from calendar import Calendar
-from day import FoxDay
+import web
 
+PORT = 8000
 if __name__ == "__main__":  # ceci permet d'executer ce code seulement si invoquer directement avec `python main.py`
-    print("Please enter a number between 1 and 9999")
-    print("Any other number will terminate the program")
-    while True:
-        year = int(input("What year > "))
-        if year < 1 or year > 9999:
-            break
-        c = Calendar(year)
-        c.set_custom_day(FoxDay)
-        c.months[0].generate().save("tmp.png")
-        # c.generate().save("calendar.png")
+    print("The web server will be served at http://localhost:{}/".format(PORT))
+    web.run(handler_class=web.CalendarWeb, port=PORT)

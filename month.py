@@ -62,13 +62,10 @@ class Month:
 
 
 class ColorMonth(Month):
-    def __init__(self, number, year):
-        self.super = super
-        super.__init__(self, number, year)
 
     def generate(self):
-        im = super.generate()
-        col_img = Image.new("RGB", size=(DAY_SIZE * 7, DAY_SIZE * 6 + HEADER_SIZE),
+        im = super().generate().convert("RGBA")
+        col_img = Image.new("RGBA", size=(DAY_SIZE * 7, DAY_SIZE * 6 + HEADER_SIZE),
                             color=DAY_INNER_BG_BY_DAY[self.number % 6])
         col_img.putalpha(150)
         im.alpha_composite(col_img)
