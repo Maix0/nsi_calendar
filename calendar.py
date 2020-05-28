@@ -3,6 +3,7 @@ from math import ceil
 from PIL import Image, ImageDraw
 
 from constants import *
+from day import Day
 from month import Month
 
 
@@ -33,6 +34,10 @@ class Calendar:
         self.months = [m(x, self.year) for x in range(1, 13)]
         for (n, b) in zip(self.months, tmp_month):
             n.days = b.days
+
+    def set_text(self, day, month, text):
+        if Day.is_valid(day, month, self.year):
+            self.months[month - 1].days[day - 1].set_text(text)
 
     def generate(self):
         """

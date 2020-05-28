@@ -2,6 +2,8 @@
 async function main(year) {
     const ID_res = await fetch(`/get_id/${year}`);
     const img = document.querySelector(".viewer");
+    const settings_container = document.querySelector(".settings_container");
+    const day_editor = document.querySelector(".day_editor");
     const back_btn = document.querySelector(".button.back");
     const next_btn = document.querySelector(".button.next");
     const premade_ctn = document.querySelector(".premade");
@@ -10,6 +12,9 @@ async function main(year) {
     const themes = (await (await fetch("/get_themes/theme")).json());
     const DayThemes = (await (await fetch("/get_themes/day")).json());
     const MonthThemes = (await (await fetch("/get_themes/month")).json());
+    const DayEditorText = day_editor.querySelector(".day_editor_main");
+    let focused_day = null;
+    let current_days_locations = new Map();
     let current_month = 1;
     let current_theme_month = "default";
     let current_theme_day = "default";
@@ -17,57 +22,72 @@ async function main(year) {
         return;
     }
     const ID = await ID_res.text();
-    change_image(ID, 1);
+    await change_image(ID, 1);
     back_btn.addEventListener("click", back);
     next_btn.addEventListener("click", next);
-    function change_image(id, month) {
+    async function change_image(id, month) {
         current_month = month;
         let date = Date.now().toString();
-        img.src = `/image/${id}/${current_month}?${date.substring(date.length - 5, date.length)}`;
+        img.src = `/image/${id}/${current_month}${focused_day === null ? "" : `/${focused_day}`}?${date.substring(date.length - 5, date.length)}`;
+        current_days_locations = await (async () => {
+            let map = new Map();
+            Object.entries((await (await fetch(`/get_days/${id}/${current_month}`)).json())).forEach((value) => {
+                map.set(JSON.parse(value[0]), value[1]);
+            });
+            return map;
+        })();
     }
-    function reload_image() {
+    async function reload_image() {
         let src = img.src;
         img.src = "";
         img.src = src;
     }
-    function next() {
+    async function next() {
         back_btn.classList.remove("disabled");
         next_btn.classList.remove("disabled");
         current_month += 1;
         if (current_month > 12) {
             current_month = 12;
             next_btn.classList.add("disabled");
+            return;
         }
-        change_image(ID, current_month);
+        await change_image(ID, current_month);
     }
-    function back() {
+    async function back() {
         back_btn.classList.remove("disabled");
         next_btn.classList.remove("disabled");
         current_month -= 1;
         if (current_month < 1) {
             current_month = 1;
             back_btn.classList.add("disabled");
+            return;
         }
-        change_image(ID, current_month);
+        await change_image(ID, current_month);
     }
     async function change_theme(theme) {
-        await Promise.all([fetch(`/set_theme/day/${ID}/${theme.day}`), fetch(`/set_theme/month/${ID}/${theme.month}`)]);
-        change_image(ID, current_month);
+        await Promise.all([
+            fetch(`/set_theme/day/${ID}/${theme.day}`),
+            fetch(`/set_theme/month/${ID}/${theme.month}`),
+        ]);
+        await change_image(ID, current_month);
     }
     function generate_premade() {
         Object.entries(themes).forEach((value) => {
             let [name, [month, day]] = value;
-            premade_ctn.innerHTML += `<div class="cm-element" data-day="${day}" data-month="${month}" data-theme="${name}">${name.toProperCase()}</div>`;
+            premade_ctn.innerHTML +=
+                `<div class="cm-element" data-day="${day}" data-month="${month}" data-theme="${name}">${name.toProperCase()}</div>`;
         });
     }
     function generate_month() {
         MonthThemes.forEach((value) => {
-            month_ctn.innerHTML += `<div class="cm-element" data-month="${value}">${value.toProperCase()}</div>`;
+            month_ctn.innerHTML +=
+                `<div class="cm-element" data-month="${value}">${value.toProperCase()}</div>`;
         });
     }
     function generate_day() {
         DayThemes.forEach((value) => {
-            day_ctn.innerHTML += `<div class="cm-element" data-day="${value}">${value.toProperCase()}</div>`;
+            day_ctn.innerHTML +=
+                `<div class="cm-element" data-day="${value}">${value.toProperCase()}</div>`;
         });
     }
     generate_premade();
@@ -84,7 +104,10 @@ async function main(year) {
         month_ctn.querySelector(`[data-month="${month}"]`).classList.add("selected");
         day_ctn.querySelector(`[data-day="${day}"]`).classList.add("selected");
         this.classList.add("selected");
-        change_theme({ month: current_theme_month, day: current_theme_day });
+        change_theme({
+            month: current_theme_month,
+            day: current_theme_day,
+        });
     }
     function day_onclick(e) {
         let day = this.dataset.day;
@@ -93,7 +116,10 @@ async function main(year) {
         premade_ctn.querySelectorAll(".cm-element").forEach(remove_selected);
         day_ctn.querySelector(`[data-day="${day}"]`).classList.add("selected");
         this.classList.add("selected");
-        change_theme({ month: current_theme_month, day: current_theme_day });
+        change_theme({
+            month: current_theme_month,
+            day: current_theme_day,
+        });
     }
     function month_onclick(e) {
         let month = this.dataset.month;
@@ -102,20 +128,60 @@ async function main(year) {
         premade_ctn.querySelectorAll(".cm-element").forEach(remove_selected);
         month_ctn.querySelector(`[data-month="${month}"]`).classList.add("selected");
         this.classList.add("selected");
-        change_theme({ month: current_theme_month, day: current_theme_day });
+        change_theme({
+            month: current_theme_month,
+            day: current_theme_day,
+        });
+    }
+    async function on_img_click(e) {
+        var rect = e.target.getBoundingClientRect();
+        var x = (e.clientX - rect.left) * (img.naturalWidth / this.clientWidth);
+        var y = (e.clientY - rect.top) * (img.naturalHeight / this.clientHeight);
+        let day = Array.from(current_days_locations.entries()).find((value) => value[0][0][0] <= x && x <= value[0][1][0] &&
+            value[0][0][1] <= y && y <= value[0][1][1]);
+        if (day && focused_day === null) {
+            focused_day = day[1];
+        }
+        else {
+            focused_day = null;
+        }
+        await change_image(ID, current_month);
+        await manage_day_editor();
+    }
+    async function manage_day_editor() {
+        if (focused_day === null) {
+            day_editor.style.display = "none";
+            settings_container.style.display = "";
+        }
+        else {
+            DayEditorText.value = await fetch(`/get_text/${ID}/${current_month}/${focused_day}`).then((r) => r.json()).then((r) => r.message ? r.message : "").catch((e) => `Error: ${e}`);
+            settings_container.style.display = "none";
+            day_editor.style.display = "";
+        }
+    }
+    async function send_text() {
+        await fetch(`/set_text/${ID}/${current_month}/${focused_day}`, {
+            method: "POST",
+            body: JSON.stringify({
+                message: DayEditorText.value.length ? DayEditorText.value : null,
+            }),
+        });
+        await reload_image();
     }
     function remove_selected(e) {
         e.classList.remove("selected");
     }
-    premade_ctn.querySelectorAll(".cm-element").forEach(el => {
+    premade_ctn.querySelectorAll(".cm-element").forEach((el) => {
         el.addEventListener("click", premade_onclick);
     });
-    month_ctn.querySelectorAll(".cm-element").forEach(el => {
+    month_ctn.querySelectorAll(".cm-element").forEach((el) => {
         el.addEventListener("click", month_onclick);
     });
-    day_ctn.querySelectorAll(".cm-element").forEach(el => {
+    day_ctn.querySelectorAll(".cm-element").forEach((el) => {
         el.addEventListener("click", day_onclick);
     });
+    img.addEventListener("click", on_img_click);
+    document.querySelector(".day_editor_btn")?.addEventListener("click", send_text);
 }
 String.prototype.toProperCase = function () {
     return this.replace(/\w\S*/g, function (txt) {

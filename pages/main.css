@@ -5,6 +5,16 @@ body {
   padding: 0;
   margin: 0;
   background-color: #1E1E1E;
+  overflow: hidden;
+}
+
+.hidden {
+  display: none;
+  width: 0px;
+  height: 0px;
+  left: 0px;
+  top: 0px;
+  position: absolute;
 }
 
 .viewer_container {
@@ -42,9 +52,7 @@ body {
   cursor: not-allowed
 }
 
-.hidden {
-  display: none;
-}
+
 
 
 
@@ -103,17 +111,25 @@ body {
   color: #ffffff;
   text-align: center;
   text-transform: uppercase;
+  height: fit-content;
 }
 
-
-
-.settings_container {
+.sidebar_container {
   position: absolute;
   width: 29.6875%;
   height: 94.44444%;
   left: 68.75%;
   top: 2.77778%;
   background: #00A3FF;
+}
+
+
+.settings_container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
   display: grid;
   grid-template-columns: 1fr 1fr;
   grid-template-rows: 1fr 1fr;
@@ -148,4 +164,51 @@ body {
 
 .year_chooser {
   width: 500%;
+}
+
+
+
+.day_editor {
+  position: relative;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: 0.2fr 2.6fr 0.2fr;
+  gap: 1px 1px;
+  grid-template-areas: "header""main_area""day_btn";
+}
+
+.day_editor_header {
+  grid-area: header;
+}
+
+.day_editor_main_area {
+  grid-area: main_area;
+}
+
+.day_editor_btn_area {
+  grid-area: day_btn;
+}
+
+.day_editor_btn {
+  background-color: #222222;
+  border: 1px solid #cccccc;
+  color: #ffffff;
+  margin: 0px;
+  width: 100%;
+  height: 100%;
+}
+
+.day_editor_main {
+  background-color: #222222;
+  border: 1px solid #cccccc;
+  color: #ffffff;
+  margin: 0px;
+  padding: 0px;
+  width: 100%;
+  height: 100%;
+  resize: none;
 }

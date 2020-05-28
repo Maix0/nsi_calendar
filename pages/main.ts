@@ -1,157 +1,252 @@
 async function main(year: number) {
-    const ID_res = await fetch(`/get_id/${year}`)
-    const img = document.querySelector(".viewer") as HTMLImageElement;
-    const back_btn = document.querySelector(".button.back") as HTMLButtonElement
-    const next_btn = document.querySelector(".button.next") as HTMLButtonElement
-    const premade_ctn = document.querySelector(".premade") as HTMLDivElement
-    const month_ctn = document.querySelector(".month") as HTMLDivElement
-    const day_ctn = document.querySelector(".day") as HTMLDivElement
-    const themes = (await (await fetch("/get_themes/theme")).json());
-    const DayThemes = (await (await fetch("/get_themes/day")).json());
-    const MonthThemes = (await (await fetch("/get_themes/month")).json());
+  const ID_res = await fetch(`/get_id/${year}`);
+  const img = document.querySelector(".viewer") as HTMLImageElement;
+  const settings_container = document.querySelector(
+    ".settings_container",
+  ) as HTMLDivElement;
+  const day_editor = document.querySelector(".day_editor") as HTMLDivElement;
+  const back_btn = document.querySelector(".button.back") as HTMLButtonElement;
+  const next_btn = document.querySelector(".button.next") as HTMLButtonElement;
+  const premade_ctn = document.querySelector(".premade") as HTMLDivElement;
+  const month_ctn = document.querySelector(".month") as HTMLDivElement;
+  const day_ctn = document.querySelector(".day") as HTMLDivElement;
+  const themes = (await (await fetch("/get_themes/theme")).json());
+  const DayThemes = (await (await fetch("/get_themes/day")).json());
+  const MonthThemes = (await (await fetch("/get_themes/month")).json());
+  const DayEditorText = day_editor.querySelector(
+    ".day_editor_main",
+  ) as HTMLTextAreaElement;
+  let focused_day: null | number = null;
 
-    let current_month = 1;
-    let current_theme_month = "default";
-    let current_theme_day = "default";
-    if (ID_res.status != 200) {
-        return
+  let current_days_locations: Map<[
+    [number, number],
+    [number, number],
+  ], number> = new Map();
+  let current_month = 1;
+  let current_theme_month = "default";
+  let current_theme_day = "default";
+  if (ID_res.status != 200) {
+    return;
+  }
+  const ID = await ID_res.text();
+  await change_image(ID, 1);
+
+  back_btn.addEventListener("click", back);
+  next_btn.addEventListener("click", next);
+
+  async function change_image(id: String, month: number) {
+    current_month = month;
+    let date = Date.now().toString();
+    img.src = `/image/${id}/${current_month}${
+      focused_day === null ? "" : `/${focused_day}`
+    }?${date.substring(date.length - 5, date.length)}`;
+    current_days_locations = await (async () => {
+      let map = new Map();
+      Object.entries(
+        (await (await fetch(`/get_days/${id}/${current_month}`)).json()),
+      ).forEach((value) => {
+        map.set(JSON.parse(value[0]), value[1]);
+      });
+      return map;
+    })();
+  }
+
+  async function reload_image() {
+    let src = img.src;
+    img.src = "";
+    img.src = src;
+  }
+
+  async function next() {
+    back_btn.classList.remove("disabled");
+    next_btn.classList.remove("disabled");
+
+    current_month += 1;
+    if (current_month > 12) {
+      current_month = 12;
+      next_btn.classList.add("disabled");
+      return;
     }
-    const ID = await ID_res.text()
-    change_image(ID, 1)
-    back_btn.addEventListener("click", back)
-    next_btn.addEventListener("click", next)
+    await change_image(ID!, current_month);
+  }
 
-    function change_image(id: String, month: number) {
-        current_month = month;
-        let date = Date.now().toString();
-        img.src = `/image/${id}/${current_month}?${date.substring(date.length - 5, date.length)}`
+  async function back() {
+    back_btn.classList.remove("disabled");
+    next_btn.classList.remove("disabled");
+
+    current_month -= 1;
+    if (current_month < 1) {
+      current_month = 1;
+      back_btn.classList.add("disabled");
+      return;
     }
+    await change_image(ID!, current_month);
+  }
 
-    function reload_image() {
-        let src = img.src
-        img.src = ""
-        img.src = src
+  async function change_theme(theme: {
+    month: string | null;
+    day: string | null;
+  }) {
+    await Promise.all(
+      [
+        fetch(`/set_theme/day/${ID}/${theme.day}`),
+        fetch(`/set_theme/month/${ID}/${theme.month}`),
+      ],
+    );
+
+    await change_image(ID!, current_month);
+  }
+
+  function generate_premade() {
+    Object.entries(themes).forEach((value: any) => {
+      let [name, [month, day]] = value;
+      premade_ctn.innerHTML +=
+        `<div class="cm-element" data-day="${day}" data-month="${month}" data-theme="${name}">${name.toProperCase()}</div>`;
+    });
+  }
+
+  function generate_month() {
+    MonthThemes.forEach((value: any) => {
+      month_ctn.innerHTML +=
+        `<div class="cm-element" data-month="${value}">${value.toProperCase()}</div>`;
+    });
+  }
+
+  function generate_day() {
+    DayThemes.forEach((value: any) => {
+      day_ctn.innerHTML +=
+        `<div class="cm-element" data-day="${value}">${value.toProperCase()}</div>`;
+    });
+  }
+
+  generate_premade();
+  generate_month();
+  generate_day();
+
+  function premade_onclick(this: HTMLDivElement, e: MouseEvent) {
+    let month = this.dataset.month!;
+    let day = this.dataset.day!;
+    current_theme_day = day;
+    current_theme_month = month;
+
+    month_ctn.querySelectorAll(".cm-element").forEach(remove_selected);
+    day_ctn.querySelectorAll(".cm-element").forEach(remove_selected);
+    premade_ctn.querySelectorAll(".cm-element").forEach(remove_selected);
+
+    month_ctn.querySelector(`[data-month="${month}"]`)!.classList.add(
+      "selected",
+    );
+    day_ctn.querySelector(`[data-day="${day}"]`)!.classList.add("selected");
+    this.classList.add("selected");
+    change_theme({
+      month: current_theme_month,
+      day: current_theme_day,
+    });
+  }
+
+  function day_onclick(this: HTMLDivElement, e: MouseEvent) {
+    let day = this.dataset.day!;
+    current_theme_day = day;
+    day_ctn.querySelectorAll(".cm-element").forEach(remove_selected);
+    premade_ctn.querySelectorAll(".cm-element").forEach(remove_selected);
+    day_ctn.querySelector(`[data-day="${day}"]`)!.classList.add("selected");
+
+    this.classList.add("selected");
+    change_theme({
+      month: current_theme_month,
+      day: current_theme_day,
+    });
+  }
+
+  function month_onclick(this: HTMLDivElement, e: MouseEvent) {
+    let month = this.dataset.month!;
+    current_theme_month = month;
+    month_ctn.querySelectorAll(".cm-element").forEach(remove_selected);
+    premade_ctn.querySelectorAll(".cm-element").forEach(remove_selected);
+    month_ctn.querySelector(`[data-month="${month}"]`)!.classList.add(
+      "selected",
+    );
+    this.classList.add("selected");
+    change_theme({
+      month: current_theme_month,
+      day: current_theme_day,
+    });
+  }
+
+  async function on_img_click(this: HTMLImageElement, e: MouseEvent) {
+    var rect = (e.target as any).getBoundingClientRect();
+    var x = (e.clientX - rect.left) * (img.naturalWidth / this.clientWidth);
+    var y = (e.clientY - rect.top) * (img.naturalHeight / this.clientHeight);
+    let day = Array.from(current_days_locations.entries()).find((value) =>
+      value[0][0][0] <= x && x <= value[0][1][0] &&
+      value[0][0][1] <= y && y <= value[0][1][1]
+    );
+    if (day && focused_day === null) {
+      focused_day = day[1];
+    } else {
+      focused_day = null;
     }
-
-    function next() {
-        back_btn.classList.remove("disabled")
-        next_btn.classList.remove("disabled")
-
-        current_month += 1;
-        if (current_month > 12) {
-            current_month = 12
-            next_btn.classList.add("disabled")
-        }
-        change_image(ID!, current_month)
+    await change_image(ID!, current_month);
+    await manage_day_editor();
+  }
+  async function manage_day_editor() {
+    if (focused_day === null) {
+      day_editor.style.display = "none";
+      settings_container.style.display = "";
+    } else {
+      DayEditorText.value = await fetch(
+        `/get_text/${ID}/${current_month}/${focused_day}`,
+      ).then((r) => r.json()).then((r) => r.message ? r.message : "").catch((
+        e,
+      ) => `Error: ${e}`);
+      settings_container.style.display = "none";
+      day_editor.style.display = "";
     }
+  }
 
-    function back() {
-        back_btn.classList.remove("disabled")
-        next_btn.classList.remove("disabled")
+  async function send_text(this: HTMLButtonElement) {
+    await fetch(
+      `/set_text/${ID}/${current_month}/${focused_day}`,
+      {
+        method: "POST",
+        body: JSON.stringify({
+          message: DayEditorText.value.length ? DayEditorText.value : null,
+        }),
+      },
+    );
+    await reload_image();
+  }
 
-        current_month -= 1;
-        if (current_month < 1) {
-            current_month = 1
-            back_btn.classList.add("disabled")
-        }
-        change_image(ID!, current_month)
-    }
+  function remove_selected(e: Element) {
+    e.classList.remove("selected");
+  }
+  premade_ctn.querySelectorAll(".cm-element").forEach((el) => {
+    (el as HTMLDivElement).addEventListener("click", premade_onclick);
+  });
+  month_ctn.querySelectorAll(".cm-element").forEach((el) => {
+    (el as HTMLDivElement).addEventListener("click", month_onclick);
+  });
+  day_ctn.querySelectorAll(".cm-element").forEach((el) => {
+    (el as HTMLDivElement).addEventListener("click", day_onclick);
+  });
+  img.addEventListener("click", on_img_click);
 
-    async function change_theme(theme: {
-        month: string | null,
-        day: string | null
-    }) {
-        await Promise.all([fetch(`/set_theme/day/${ID}/${theme.day}`), fetch(`/set_theme/month/${ID}/${theme.month}`)])
-
-        change_image(ID!, current_month)
-    }
-
-    function generate_premade() {
-        Object.entries(themes).forEach((value: any) => {
-            let [name, [month, day]] = value;
-            premade_ctn.innerHTML += `<div class="cm-element" data-day="${day}" data-month="${month}" data-theme="${name}">${name.toProperCase()}</div>`
-        });
-    }
-
-    function generate_month() {
-        MonthThemes.forEach((value: any) => {
-            month_ctn.innerHTML += `<div class="cm-element" data-month="${value}">${value.toProperCase()}</div>`
-        });
-    }
-
-    function generate_day() {
-        DayThemes.forEach((value: any) => {
-            day_ctn.innerHTML += `<div class="cm-element" data-day="${value}">${value.toProperCase()}</div>`
-        });
-    }
-
-    generate_premade()
-    generate_month()
-    generate_day()
-
-    function premade_onclick(this: HTMLDivElement, e: MouseEvent) {
-        let month = this.dataset.month!;
-        let day = this.dataset.day!
-        current_theme_day = day
-        current_theme_month = month
-
-        month_ctn.querySelectorAll(".cm-element").forEach(remove_selected)
-        day_ctn.querySelectorAll(".cm-element").forEach(remove_selected)
-        premade_ctn.querySelectorAll(".cm-element").forEach(remove_selected)
-
-        month_ctn.querySelector(`[data-month="${month}"]`)!.classList.add("selected")
-        day_ctn.querySelector(`[data-day="${day}"]`)!.classList.add("selected")
-        this.classList.add("selected")
-        change_theme({ month: current_theme_month, day: current_theme_day })
-    }
-
-    function day_onclick(this: HTMLDivElement, e: MouseEvent) {
-        let day = this.dataset.day!
-        current_theme_day = day
-        day_ctn.querySelectorAll(".cm-element").forEach(remove_selected)
-        premade_ctn.querySelectorAll(".cm-element").forEach(remove_selected)
-        day_ctn.querySelector(`[data-day="${day}"]`)!.classList.add("selected")
-
-        this.classList.add("selected")
-        change_theme({ month: current_theme_month, day: current_theme_day })
-    }
-
-    function month_onclick(this: HTMLDivElement, e: MouseEvent) {
-        let month = this.dataset.month!
-        current_theme_month = month
-        month_ctn.querySelectorAll(".cm-element").forEach(remove_selected)
-        premade_ctn.querySelectorAll(".cm-element").forEach(remove_selected)
-        month_ctn.querySelector(`[data-month="${month}"]`)!.classList.add("selected")
-        this.classList.add("selected")
-        change_theme({ month: current_theme_month, day: current_theme_day })
-    }
-
-    function remove_selected(e: Element) {
-        e.classList.remove("selected")
-    }
-    premade_ctn.querySelectorAll(".cm-element").forEach(el => {
-        (el as HTMLDivElement).addEventListener("click", premade_onclick)
-    })
-    month_ctn.querySelectorAll(".cm-element").forEach(el => {
-        (el as HTMLDivElement).addEventListener("click", month_onclick)
-    })
-    day_ctn.querySelectorAll(".cm-element").forEach(el => {
-        (el as HTMLDivElement).addEventListener("click", day_onclick)
-    })
+  document.querySelector(
+    ".day_editor_btn",
+  )?.addEventListener("click", send_text);
 }
 
-
-String.prototype.toProperCase = function () {
-    return this.replace(/\w\S*/g, function (txt) {
-        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
-    });
+(String.prototype as any).toProperCase = function () {
+  return this.replace(/\w\S*/g, function (txt: string) {
+    return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+  });
 };
-
-
 function load_year() {
-    let y = Number((document.querySelector(".year_picker") as HTMLInputElement).value)
-    document.querySelector(".viewer")!.classList.remove("hidden")
-    document.querySelector(".year_chooser")!.classList.add("hidden")
+  let y = Number(
+    (document.querySelector(".year_picker") as HTMLInputElement).value,
+  );
+  document.querySelector(".viewer")!.classList.remove("hidden");
+  document.querySelector(".year_chooser")!.classList.add("hidden");
 
-    main(y)
+  main(y);
 }

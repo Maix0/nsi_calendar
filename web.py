@@ -3,7 +3,7 @@ import mimetypes
 import posixpath
 import re
 from http import HTTPStatus
-from http.server import BaseHTTPRequestHandler, HTTPServer
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from uuid import uuid4
 
 import calendar
@@ -17,14 +17,20 @@ class CalendarWeb(BaseHTTPRequestHandler):
         "index": re.compile(r"^/$", re.MULTILINE),
         "assets": re.compile(r"^/assets/(?P<Filename>[a-z]+\.[a-z]+)$", re.MULTILINE),
         "get_month": re.compile(
-            r"^/image/{cal_id}/(?P<month>[1-9]|[1][0-2]?)\?\d{{5}}".format(cal_id=CAL_ID),
+            r"^/image/{cal_id}/(?P<month>[1-9]|[1][0-2]?)(?:/(?P<text>[0-9]{{1,2}}))?\?\d{{5}}".format(cal_id=CAL_ID),
             re.MULTILINE),
         "get_id": re.compile(r"^/get_id/(?P<year>\d{1,4})", re.MULTILINE),
         "set_theme": re.compile(r"^/set_theme/{cal_id}/(?P<theme_name>[a-z]*)".format(cal_id=CAL_ID), re.MULTILINE),
         "set_month": re.compile(r"^/set_theme/month/{cal_id}/(?P<theme_month>[a-z]*)".format(cal_id=CAL_ID),
                                 re.MULTILINE),
         "set_day": re.compile(r"^/set_theme/day/{cal_id}/(?P<theme_day>[a-z]*)".format(cal_id=CAL_ID), re.MULTILINE),
-        "get_themes": re.compile(r"^/get_themes/(?P<query>day|month|theme)", re.MULTILINE)
+        "get_themes": re.compile(r"^/get_themes/(?P<query>day|month|theme)", re.MULTILINE),
+        "get_days": re.compile(r"^/get_days/{cal_id}/(?P<month>[1-9]|[1][0-2]?)".format(cal_id=CAL_ID), re.MULTILINE),
+        "set_text": re.compile(
+            r"^/set_text/{cal_id}/(?P<month>[1-9]|[1][0-2]?)/(?P<day>\d{{1,2}})".format(cal_id=CAL_ID), re.MULTILINE),
+        "get_text": re.compile(
+            r"^/get_text/{cal_id}/(?P<month>[1-9]|[1][0-2]?)/(?P<day>\d{{1,2}})".format(cal_id=CAL_ID), re.MULTILINE),
+        "test": re.compile(r"^/test/", re.MULTILINE)
     }
     calendars = {}
 
@@ -34,6 +40,10 @@ class CalendarWeb(BaseHTTPRequestHandler):
         '.bz2': 'application/x-bzip2',
         '.xz': 'application/x-xz',
     }
+
+    def __init__(self, *args, **kwargs):
+        self.body = None
+        super().__init__(*args, **kwargs)
 
     # noinspection PyPep8Naming
     def do_GET(self) -> None:
@@ -45,10 +55,21 @@ class CalendarWeb(BaseHTTPRequestHandler):
                       self.check_route("set_month", self.serve_set_month) or \
                       self.check_route("set_day", self.serve_set_day) or \
                       self.check_route("get_themes", self.serve_get_themes) or \
+                      self.check_route("get_days", self.serve_days_location) or \
+                      self.check_route("get_text", self.serve_get_text) or \
+                      self.check_route("test", self.serve_test) or \
                       False
 
         if not valid_route:
             self.not_found()
+
+    # noinspection PyPep8Naming
+    def do_POST(self) -> None:
+        self.body = self.rfile.read(int(self.headers.get('content-length', 0)))
+        valid_route = self.check_route("set_text", self.serve_set_text) or False
+        if not valid_route:
+            self.not_found()
+        self.body = None
 
     def check_route(self, route, handler) -> None:
         m = self.pages[route].fullmatch(self.path)
@@ -78,10 +99,12 @@ class CalendarWeb(BaseHTTPRequestHandler):
         """
         cal_id = match.groupdict()["cal_id"]
         month = int(match.groupdict()["month"])
+        has_text = match.groupdict()["text"]
         if not self.has_id(cal_id):
             return self.not_found()
         self.ok()
-        self.calendars[cal_id].months[month - 1].generate().save(self.wfile, "PNG")
+        self.calendars[cal_id].months[month - 1].generate(
+            focus=int(has_text) if type(has_text) == str else None).save(self.wfile, "PNG")
 
     def serve_get_id(self, match: re.Match) -> None:
         """
@@ -127,7 +150,6 @@ class CalendarWeb(BaseHTTPRequestHandler):
         month = themes.MONTHS.get(theme)
         self.ok()
         if month is not None:
-            print(theme, month)
             self.calendars[cal_id].set_custom_month(month)
             self.wfile.write(bytes("{}".format(theme), 'utf-8'))
 
@@ -164,6 +186,56 @@ class CalendarWeb(BaseHTTPRequestHandler):
             data = json.dumps(themes.THEMES)
         self.wfile.write(bytes(data, "utf-8"))
 
+    def serve_days_location(self, match):
+        """
+        :type match: re.Match
+        :param match: regex match
+        :return: None
+        """
+        cal_id = match.groupdict()["cal_id"]
+        month = int(match.groupdict()["month"])
+        if not self.has_id(cal_id):
+            self.not_found()
+        data = json.dumps(self.calendars[cal_id].months[month - 1].get_day_location())
+        self.wfile.write(bytes(data, "utf-8"))
+
+    def serve_test(self, match):
+        self.ok()
+        calendar.Calendar(2020).months[0].days[0].generate_text(12, 2020).save(self.wfile, "PNG")
+
+    def serve_get_text(self, match):
+        cal_id = match.groupdict()["cal_id"]
+        month = int(match.groupdict()["month"])
+        day = int(match.groupdict()["day"])
+        if not self.has_id(cal_id):
+            self.not_found()
+            return
+        if themes.day.Day.is_valid(day, month, self.calendars[cal_id].year):
+            self.ok()
+            data = json.dumps({"message":
+                                   self.calendars[cal_id].months[month - 1].days[day - 1].text if
+                                   self.calendars[cal_id].months[month - 1].days[day - 1].has_text else None})
+            self.wfile.write(bytes(data, "utf-8"))
+        else:
+            self.not_found()
+
+    def serve_set_text(self, match):
+        data = json.loads(self.body)
+        if not "message" in data:
+            self.not_found()
+            return
+        cal_id = match.groupdict()["cal_id"]
+        month = int(match.groupdict()["month"])
+        day = int(match.groupdict()["day"])
+        if not self.has_id(cal_id):
+            self.not_found()
+            return
+        if themes.day.Day.is_valid(day, month, self.calendars[cal_id].year):
+            self.ok()
+            self.calendars[cal_id].set_text(day, month, data["message"])
+        else:
+            self.not_found()
+
     def guess_type(self, path):
         """Guess the type of a file.
         Argument is a PATH (a filename).
@@ -189,7 +261,6 @@ class CalendarWeb(BaseHTTPRequestHandler):
         return cal_id in self.calendars
 
     def send_file(self, filename: str):
-
         try:
             file = open("./pages/" + filename, "rb")
             self.send_response(HTTPStatus.OK)
@@ -218,7 +289,7 @@ class CalendarWeb(BaseHTTPRequestHandler):
         self.wfile.write(bytes("{} \nNot Found".format(self.path), 'utf-8'))
 
 
-def run(server_class=HTTPServer, handler_class=BaseHTTPRequestHandler, port=8000):
+def run(server_class=ThreadingHTTPServer, handler_class=BaseHTTPRequestHandler, port=8000):
     server_address = ('', port)
     httpd = server_class(server_address, handler_class)
     httpd.serve_forever()

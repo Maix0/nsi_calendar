@@ -15,6 +15,7 @@ DAYS = {
     "default": day.Day,
     "patchouli": day.PatchouliDay,
     "fox": day.FoxDay,
+    "choupette": day.ChoupetteDay,
 }
 
 
