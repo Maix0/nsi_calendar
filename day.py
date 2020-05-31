@@ -122,6 +122,33 @@ class Day:
         return img
 
 
+class AlternateColor(Day):
+    ALTERNATE_COLOR = ["#FFFAF0", "#CD5C5C", "#32CD32", "#FFFFE0", "#F0F8FF", "#663399", "#800000"]
+
+    def generate_image(self, month, year):
+        """
+            Retourne une image qui reprsente le jour.
+            Cette fonction pourra etre réimplementer par des classe pour changer l'apparance.
+            :param month: le mois associer au jour
+            :param year: l'année associer au jour
+            :return: Image qui represente le jour.
+        """
+        pts = [(DAY_SIZE * BORDER_TOP_LEFT, DAY_SIZE * BORDER_TOP_LEFT),
+               (DAY_SIZE * BORDER_BOTTOM_LEFT, DAY_SIZE * BORDER_BOTTOM_LEFT)]
+        img = Image.new("RGBA", size=(DAY_SIZE, DAY_SIZE), color=DAY_BG_COLOR)
+        draw = ImageDraw.Draw(img)
+        fill = self.ALTERNATE_COLOR[self.get_own_day(month, year)[0]]
+        draw.rectangle(pts, outline=LINE_COLOR, fill=fill, width=LINE_SIZE)
+        draw.text((DAY_SIZE * (BORDER_TOP_LEFT + TEXT_OFFSET), DAY_SIZE * (BORDER_TOP_LEFT + TEXT_OFFSET)),
+                  str(self.num), fill=DAY_NUM_COLOR, font=FONT)
+
+        if self.has_text:
+            img.alpha_composite(self.mark,
+                                (int(pts[1][0] - DAY_SIZE / 8 - DAY_SIZE * TEXT_OFFSET),
+                                 int(pts[0][0] + DAY_SIZE * TEXT_OFFSET)))
+        return img
+
+
 class PatchouliDay(Day):
     """
         Une class example pour montrer comment changer la logic de l'affichage

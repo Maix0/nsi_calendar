@@ -5,7 +5,7 @@ THEMES = {
     "default": ["default", "default"],
     "patchouli": ["default", "patchouli"],
     "fox": ["default", "fox"],
-    "color": ["color", "default"]
+
 }
 MONTHS = {
     "default": month.Month,
@@ -13,6 +13,7 @@ MONTHS = {
 }
 DAYS = {
     "default": day.Day,
+    "alternate": day.AlternateColor,
     "patchouli": day.PatchouliDay,
     "fox": day.FoxDay,
     "choupette": day.ChoupetteDay,

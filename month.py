@@ -45,9 +45,9 @@ class Month:
             Cette fonction peut etre reimplementer pour changer l'apparence des mois.
             :return: Retourne une image avec tout les jours du mois et d'autre informations.
         """
-        im = Image.new("RGB", size=(DAY_SIZE * 7, DAY_SIZE * 6 + HEADER_SIZE), color=MONTH_BG_COLOR)
+        im = Image.new("RGBA", size=(DAY_SIZE * 7, DAY_SIZE * 6 + 2 * HEADER_SIZE), color=MONTH_BG_COLOR)
         draw = ImageDraw.Draw(im)
-        y = HEADER_SIZE
+        y = 2 * HEADER_SIZE
         x = -1
         for day in self.days:
             day.set_validity(self.number, self.year)
@@ -62,7 +62,14 @@ class Month:
                 y += DAY_SIZE
             im_day = day.generate_image(self.number, self.year)
             im.paste(im_day, (x, y))
+
         draw.text((0, 0), self.get_month(self.number), fill=TEXT_COLOR, font=FONT)
+        draw.text((im.size[0] - FONT.getsize(str(self.year))[0], 0), str(self.year), fill=TEXT_COLOR, font=FONT)
+        day_font = FONT.font_variant(size=int(FONT_SIZE / 2))
+        for i, name in enumerate(DAYS_NAME[LANG]):
+            name_len = day_font.getsize(name)
+            draw.text((int((DAY_SIZE * (float(i) + 0.5)) - (name_len[0] / 2)), HEADER_SIZE * 2 - name_len[1]), name,
+                      fill=TEXT_COLOR, font=day_font)
         if focus is not None and focus <= len(self.days):
             im_text = self.days[focus - 1].generate_text(self.number, self.year)
             im.paste(im_text, (0, int(im.height / 2 - im_text.height / 2)))
@@ -91,7 +98,7 @@ class ColorMonth(Month):
 
     def generate(self, focus=None):
         im = super().generate(focus).convert("RGBA")
-        col_img = Image.new("RGBA", size=(DAY_SIZE * 7, DAY_SIZE * 6 + HEADER_SIZE),
+        col_img = Image.new("RGBA", size=im.size,
                             color=DAY_INNER_BG_BY_DAY[self.number % 6])
         col_img.putalpha(150)
         im.alpha_composite(col_img)

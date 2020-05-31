@@ -45,7 +45,7 @@ class Calendar:
             :return: Image du calendrier.
         """
         m_x, m_y = self.months[0].generate().size
-        im = Image.new("RGB", size=(m_x * MONTH_PER_LINE, m_y * ceil(12 / MONTH_PER_LINE) + HEADER_SIZE),
+        im = Image.new("RGBA", size=(m_x * MONTH_PER_LINE, m_y * ceil(12 / MONTH_PER_LINE) + HEADER_SIZE),
                        color=CALENDAR_BG_COLOR)
         x, y = -1, HEADER_SIZE
         for month in self.months:

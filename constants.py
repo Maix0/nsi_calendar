@@ -1,5 +1,6 @@
 from PIL import ImageFont
 
+WEB_PORT = 42420
 DAY_SIZE = 150
 MAX_DAY = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
 HEADER_SIZE = 50
@@ -21,6 +22,9 @@ MONTH_NAME = {"fr": ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Jui
                      "Novembre", "Décembre"],
               "en": ["January", "February", "March", "April", "May", "Jun", "July", "August", "September", "October",
                      "November", "December"]}
+DAYS_NAME = {
+    "fr": ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimache"]
+}
 
 try:
     FONT = ImageFont.truetype("Consolas.ttf", size=FONT_SIZE)
@@ -30,4 +34,5 @@ except IOError:
     exit()
 __all__ = ["DAY_SIZE", "MAX_DAY", "HEADER_SIZE", "BORDER_TOP_LEFT", "BORDER_BOTTOM_LEFT", "TEXT_OFFSET",
            "MONTH_PER_LINE", "LINE_SIZE", "FONT_SIZE", "FONT", "LINE_COLOR", "DAY_NUM_COLOR", "DAY_BG_COLOR",
-           "TEXT_COLOR", "MONTH_BG_COLOR", "DAY_INNER_BG_BY_DAY", "CALENDAR_BG_COLOR", "LANG", "MONTH_NAME"]
+           "TEXT_COLOR", "MONTH_BG_COLOR", "DAY_INNER_BG_BY_DAY", "CALENDAR_BG_COLOR", "LANG", "MONTH_NAME",
+           "DAYS_NAME"]
