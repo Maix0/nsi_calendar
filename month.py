@@ -77,7 +77,7 @@ class Month:
 
     def get_day_location(self):
         days = {}
-        y = HEADER_SIZE
+        y = HEADER_SIZE * 2
         x = -1
         for day in self.days:
             day.set_validity(self.number, self.year)
